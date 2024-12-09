@@ -8,6 +8,8 @@ const App = (): JSX.Element => {
   const [fileName, setFileName] = useState("");
   const [loading, setLoading] = useState(false);
   const [complete, setComplete] = useState(false);
+  const [pivotsOrUnwind, setPivotsOrUnwind] = useState(false);
+  const [unwindAmount, setUnwindAmount] = useState(3);
 
   const handleDragOver = (e) => {
     e.preventDefault();
@@ -24,9 +26,21 @@ const App = (): JSX.Element => {
       return;
     }
     setFileName(files[0].name);
+
+    // Callable methods
     const ipcFileHandle = (): void =>
       window.electron.ipcRenderer.send("start-gen-files", files[0].path);
-    ipcFileHandle();
+
+    const ipcFileHandleUnwind = (): void =>
+      window.electron.ipcRenderer.send("update-unwind", files[0].path, unwindAmount);
+
+    if (pivotsOrUnwind) {
+      ipcFileHandle();
+    } else {
+      ipcFileHandleUnwind();
+    }
+
+    // Listening from main process
     window.electron.ipcRenderer.on("progress-update", (_, fileProgress) => {
       setProgress(fileProgress);
     });
@@ -76,6 +90,26 @@ const App = (): JSX.Element => {
             <FaFile />
           </p>
         </div>
+        <button
+          onClick={() => setPivotsOrUnwind(true)}
+          className={`${pivotsOrUnwind ? "bg-slate-700" : "bg-slate-99"} duration-200 w-full hover:bg-slate-700 rounded-md px-5 py-2 my-1`}
+        >
+          Update Pivots
+        </button>
+        <button
+          onClick={() => setPivotsOrUnwind(false)}
+          className={`${!pivotsOrUnwind ? "bg-slate-700" : "bg-slate-99"} duration-200 w-full hover:bg-slate-700 rounded-md px-5 py-2 my-1`}
+        >
+          Update Unwind
+        </button>
+        {!pivotsOrUnwind ? (
+          <input
+            onChange={(e) => setUnwindAmount(parseFloat(e.target.value))}
+            type="text"
+            className="w-full bg-slate-900 text-white focus:outline-none outline-none px-3 py-1 mt-1"
+            placeholder='Add amount to unwind retract default 3"'
+          />
+        ) : null}
         <button className="bg-slate-900 text-slate-300 hover:bg-slate-700 duration-200 rounded-lg shadow-lg mt-5 py-3 px-10 text-center w-full">
           Open Explorer
         </button>
