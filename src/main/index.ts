@@ -103,22 +103,14 @@ app.whenReady().then(() => {
           const xValue = parseFloat(split[1].replace("X", ""));
           const diff = xValue - prevX;
           let updatedValue = 0;
-          if (diff > 0) {
-            if (diff > 3.1) {
-              updatedValue = xValue;
-            } else {
+          if (Math.abs(diff) < 2.9) {
+            updatedValue = xValue;
+          } else {
+            if (diff > 0) {
               updatedValue = xValue + amount;
-            }
-          }
-          if (diff < 0) {
-            if (diff > -3.1) {
-              updatedValue = xValue;
             } else {
               updatedValue = xValue - amount;
             }
-          }
-          if (diff === 0) {
-            updatedValue = xValue;
           }
           // console.log(`After determining sign value updated to ${updatedValue} for X coordinate`);
           const newLine = line.replace(split[1], `X${updatedValue}`);
@@ -127,7 +119,6 @@ app.whenReady().then(() => {
           didFindLine = false;
         } else {
           if (line === "(*** Unwind Procedure ***)") {
-            console.log(prevLine);
             const split = prevLine.split(" ");
             const stringInt = split[1].replace("X", "");
             const xValue = parseFloat(stringInt);
